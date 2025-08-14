@@ -18,7 +18,7 @@
 
 ---
 
-### GiggleGPTBot
+### GiggleGPTBot (RU)
 
 **Purpose:** GPT (LLM) based bot/integration with message routing and business logic inside n8n.  
 **Features:**
