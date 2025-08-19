@@ -1,5 +1,5 @@
 {
-  "name": "GiggleGPTBot V2",
+  "name": "GiggleGPTBot V3",
   "nodes": [
     {
       "parameters": {
@@ -8,15 +8,15 @@
         ],
         "additionalFields": {}
       },
-      "id": "58065345-2b78-46c4-8c51-584fba2acf14",
+      "id": "7848575b-ae5a-4020-81ae-e7b3f5d93999",
       "name": "Webhook Telegram",
       "type": "n8n-nodes-base.telegramTrigger",
       "typeVersion": 1,
       "position": [
-        -1536,
+        -1424,
         224
       ],
-      "webhookId": "9bbd84b8-d350-4684-8239-4e510c90f455",
+      "webhookId": "3cb5a3b8-5bae-4708-be95-172a7d50cb48",
       "credentials": {
         "telegramApi": {
           "id": "GNUE3W3kc9bGnXyL",
@@ -26,17 +26,37 @@
     },
     {
       "parameters": {
-        "operation": "executeQuery",
-        "query": "-- Основные таблицы\nCREATE TABLE IF NOT EXISTS user_messages (\n  id SERIAL PRIMARY KEY,\n  user_id BIGINT NOT NULL,\n  username VARCHAR(255),\n  first_name VARCHAR(255),\n  chat_id BIGINT NOT NULL,\n  message_text TEXT,\n  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP\n);\n\nCREATE TABLE IF NOT EXISTS bot_responses (\n  id SERIAL PRIMARY KEY,\n  user_id BIGINT NOT NULL,\n  chat_id BIGINT NOT NULL,\n  user_message TEXT,\n  bot_response TEXT,\n  response_type VARCHAR(50),\n  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP\n);\n\n-- Новые таблицы для функционала\nCREATE TABLE IF NOT EXISTS bot_commands (\n  id SERIAL PRIMARY KEY,\n  user_id BIGINT NOT NULL,\n  chat_id BIGINT NOT NULL,\n  command VARCHAR(50) NOT NULL,\n  parameters TEXT,\n  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP\n);\n\nCREATE TABLE IF NOT EXISTS message_reactions (\n  id SERIAL PRIMARY KEY,\n  message_id BIGINT NOT NULL,\n  chat_id BIGINT NOT NULL,\n  user_id BIGINT NOT NULL,\n  emoji VARCHAR(10),\n  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP\n);\n\nCREATE TABLE IF NOT EXISTS scheduled_posts (\n  id SERIAL PRIMARY KEY,\n  chat_id BIGINT NOT NULL,\n  message_text TEXT,\n  post_type VARCHAR(50),\n  scheduled_time TIME,\n  is_active BOOLEAN DEFAULT true,\n  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP\n);\n\nCREATE TABLE user_stats (\n  user_id BIGINT NOT NULL,\n  chat_id BIGINT NOT NULL,\n  messages_count INT DEFAULT 0,\n  commands_count INT DEFAULT 0,\n  reactions_received INT DEFAULT 0,\n  last_activity TIMESTAMP DEFAULT CURRENT_TIMESTAMP,\n  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,\n  PRIMARY KEY (user_id, chat_id)  -- Составной первичный ключ\n);\n\n-- Индексы\nCREATE INDEX IF NOT EXISTS idx_user_messages_chat_user ON user_messages(chat_id, user_id);\nCREATE INDEX IF NOT EXISTS idx_bot_responses_chat_user ON bot_responses(chat_id, user_id);\nCREATE INDEX IF NOT EXISTS idx_commands_user ON bot_commands(user_id, command);\nCREATE INDEX IF NOT EXISTS idx_reactions_message ON message_reactions(message_id);\nCREATE INDEX idx_user_stats_activity ON user_stats(last_activity DESC);\nCREATE INDEX idx_user_stats_messages ON user_stats(messages_count DESC);\n",
+        "model": "openai/gpt-oss-120b",
         "options": {}
       },
-      "id": "5a93b7b4-233d-4e7d-b78a-560abbd06c07",
-      "name": "Инициализация Enhanced БД",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        -800,
+        896
+      ],
+      "id": "4ed86617-4733-425c-8461-9699b449a1a2",
+      "name": "OpenRouter Commands",
+      "credentials": {
+        "openRouterApi": {
+          "id": "ONSHmBroionT6JFr",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "CREATE TABLE IF NOT EXISTS user_messages (\n  id SERIAL PRIMARY KEY,\n  user_id BIGINT NOT NULL,\n  username VARCHAR(255),\n  first_name VARCHAR(255),\n  chat_id BIGINT NOT NULL,\n  message_text TEXT,\n  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP\n);\n\nCREATE TABLE IF NOT EXISTS bot_responses (\n  id SERIAL PRIMARY KEY,\n  user_id BIGINT NOT NULL,\n  chat_id BIGINT NOT NULL,\n  user_message TEXT,\n  bot_response TEXT,\n  response_type VARCHAR(50),\n  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP\n);\n\nCREATE TABLE IF NOT EXISTS bot_commands (\n  id SERIAL PRIMARY KEY,\n  user_id BIGINT NOT NULL,\n  chat_id BIGINT NOT NULL,\n  command VARCHAR(50) NOT NULL,\n  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP\n);\n\nCREATE TABLE IF NOT EXISTS message_reactions (\n  id SERIAL PRIMARY KEY,\n  message_id BIGINT NOT NULL,\n  chat_id BIGINT NOT NULL,\n  user_id BIGINT NOT NULL,\n  emoji VARCHAR(10),\n  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP\n);\n\nCREATE TABLE IF NOT EXISTS scheduled_posts (\n  id SERIAL PRIMARY KEY,\n  chat_id BIGINT NOT NULL,\n  message_text TEXT,\n  post_type VARCHAR(50),\n  scheduled_time TIME,\n  is_active BOOLEAN DEFAULT true,\n  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP\n);\n\nCREATE TABLE user_stats (\n  user_id BIGINT NOT NULL,\n  chat_id BIGINT NOT NULL,\n  messages_count INT DEFAULT 0,\n  commands_count INT DEFAULT 0,\n  reactions_received INT DEFAULT 0,\n  last_activity TIMESTAMP DEFAULT CURRENT_TIMESTAMP,\n  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,\n  PRIMARY KEY (user_id, chat_id)\n);\n\nCREATE INDEX IF NOT EXISTS idx_user_messages_chat_user ON user_messages(chat_id, user_id);\nCREATE INDEX IF NOT EXISTS idx_bot_responses_chat_user ON bot_responses(chat_id, user_id);\nCREATE INDEX IF NOT EXISTS idx_commands_user ON bot_commands(user_id, command);\nCREATE INDEX IF NOT EXISTS idx_reactions_message ON message_reactions(message_id);\nCREATE INDEX idx_user_stats_activity ON user_stats(last_activity DESC);\nCREATE INDEX idx_user_stats_messages ON user_stats(messages_count DESC);\n",
+        "options": {}
+      },
+      "id": "5c24b82b-4279-4e7a-baa1-86d74b2500ca",
+      "name": "Init Database",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2,
       "position": [
         -1536,
-        48
+        32
       ],
       "credentials": {
         "postgres": {
@@ -48,15 +68,99 @@
     {
       "parameters": {
         "operation": "executeQuery",
-        "query": "INSERT INTO user_messages (user_id, username, first_name, chat_id, message_text) \nVALUES ({{ $('Webhook Telegram').item.json.message.from.id }}, \n        '{{ ($('Webhook Telegram').item.json.message.from.username || '').replace(/'/g, \"''\") }}', \n        '{{ ($('Webhook Telegram').item.json.message.from.first_name || '').replace(/'/g, \"''\") }}', \n        {{ $('Webhook Telegram').item.json.message.chat.id }}, \n        '{{ ($('Webhook Telegram').item.json.message.text || '').replace(/'/g, \"''\") }}');\n\n-- Обновляем статистику пользователя (теперь с правильным constraint)\nINSERT INTO user_stats (user_id, chat_id, messages_count, last_activity)\nVALUES ({{ $('Webhook Telegram').item.json.message.from.id }}, \n        {{ $('Webhook Telegram').item.json.message.chat.id }}, \n        1, CURRENT_TIMESTAMP)\nON CONFLICT (user_id, chat_id) \nDO UPDATE SET \n  messages_count = user_stats.messages_count + 1,\n  last_activity = CURRENT_TIMESTAMP;",
+        "query": "INSERT INTO user_messages (user_id, username, first_name, chat_id, message_text) \nVALUES ({{ $('Webhook Telegram').item.json.message.from.id }}, \n        '{{ ($('Webhook Telegram').item.json.message.from.username || '').replace(/'/g, \"''\") }}', \n        '{{ ($('Webhook Telegram').item.json.message.from.first_name || '').replace(/'/g, \"''\") }}', \n        {{ $('Webhook Telegram').item.json.message.chat.id }}, \n        '{{ ($('Webhook Telegram').item.json.message.text || '').replace(/'/g, \"''\") }}');\n\nINSERT INTO user_stats (user_id, chat_id, messages_count, last_activity)\nVALUES ({{ $('Webhook Telegram').item.json.message.from.id }}, \n        {{ $('Webhook Telegram').item.json.message.chat.id }}, \n        1, CURRENT_TIMESTAMP)\nON CONFLICT (user_id, chat_id) \nDO UPDATE SET \n  messages_count = user_stats.messages_count + 1,\n  last_activity = CURRENT_TIMESTAMP;",
         "options": {}
       },
-      "id": "e5369ae1-6baf-4253-831c-e0034187a833",
-      "name": "Логировать сообщение + статистика",
+      "id": "10ad0e8c-1c66-46f8-92e0-a785c143f7bc",
+      "name": "Log message + statistics",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2,
       "position": [
+        -1248,
+        -32
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "Fd7RaI9MHHQBq9hE",
+          "name": "Supabase Postgres"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO scheduled_posts (chat_id, post_type, scheduled_time) VALUES\n(-1002837353897, 'morning_joke', '06:00:00'),\n(-1002837353897, 'random_wisdom', '17:00:00'),\n(-1002837353897, 'daily_news', '09:00:00');",
+        "options": {}
+      },
+      "id": "41df66f1-754d-42e6-9c81-ffc9508913b9",
+      "name": "Adding a schedule",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        -1408,
+        560
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "Fd7RaI9MHHQBq9hE",
+          "name": "Supabase Postgres"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 * * * *"
+            }
+          ]
+        }
+      },
+      "id": "963e7dbf-3449-4272-a365-6098a65033a1",
+      "name": "Schedule",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [
         -1280,
+        704
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT chat_id, post_type \nFROM scheduled_posts \nWHERE is_active = true \nAND EXTRACT(HOUR FROM scheduled_time) = EXTRACT(HOUR FROM CURRENT_TIME);",
+        "options": {}
+      },
+      "id": "f63a7a7a-317d-4da1-b225-7a75fda2e5ed",
+      "name": "Get scheduled posts",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        -1088,
+        704
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "Fd7RaI9MHHQBq9hE",
+          "name": "Supabase Postgres"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT \n  message_text,\n  username,\n  first_name,\n  created_at,\n  'user' as message_type\nFROM user_messages \nWHERE chat_id = {{ $('Webhook Telegram').item.json.message.chat.id }}\n\nUNION ALL\n\nSELECT \n  bot_response as message_text,\n  'GiggleGPTBot' as username,\n  'GiggleGPTBot' as first_name,\n  created_at,\n  'bot' as message_type\nFROM bot_responses \nWHERE chat_id = {{ $('Webhook Telegram').item.json.message.chat.id }}\n\nORDER BY created_at DESC \nLIMIT 15;",
+        "options": {}
+      },
+      "id": "29d67fac-d89e-45d2-9e40-d616e501cb40",
+      "name": "Chat history",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        -1056,
         64
       ],
       "credentials": {
@@ -68,44 +172,10 @@
     },
     {
       "parameters": {
-        "conditions": {
-          "options": {
-            "caseSensitive": true,
-            "leftValue": "",
-            "typeValidation": "strict",
-            "version": 1
-          },
-          "conditions": [
-            {
-              "id": "condition1",
-              "leftValue": "={{ $json.message?.text }}",
-              "rightValue": "/",
-              "operator": {
-                "type": "string",
-                "operation": "startsWith",
-                "singleValue": true
-              }
-            }
-          ],
-          "combinator": "and"
-        },
-        "options": {}
+        "jsCode": "const telegramData = $('Webhook Telegram').first().json;\nconst chatHistory = $('Chat history').all();\n\n// Извлекаем информацию о пользователе\nconst userId = telegramData.message.from.id;\nconst userName = telegramData.message.from.first_name || telegramData.message.from.username || 'Анонимный';\nlet userMessage = telegramData.message.text;\nconst chatId = telegramData.message.chat.id;\n\n\nconst commandMatch = userMessage.match(/^\\/(\\w+)(?:@\\w+)?(?:\\s+(.*))?/);\nconst command = commandMatch ? commandMatch[1].toLowerCase() : '';\n\n\n// Очищаем от тега\nconst originalMessage = userMessage;\nuserMessage = userMessage.replace(/@GiggleGPTBot/gi, '').trim();\nconst isEmptyAfterTag = !userMessage || userMessage.length === 0;\n\n// Контекст чата\nconst recentMessages = chatHistory.map(item => {\n  const msgText = item.json.message_text || '';\n  const author = item.json.message_type === 'bot' ? 'GiggleGPTBot' : \n                 (item.json.first_name || item.json.username || 'Анонимный');\n  return `${author}: ${msgText}`;\n}).slice(0, 15).join('\\n'); \n\n// Определяем тип\nlet contentType = 'mixed';\nconst lowerMessage = userMessage.toLowerCase();\nif (lowerMessage.includes('шутк') || lowerMessage.includes('смешн')) {\n  contentType = 'funny';\n} else if (lowerMessage.includes('вдохнов') || lowerMessage.includes('мотив')) {\n  contentType = 'inspiring';\n}\n\nif (isEmptyAfterTag) {\n  const types = ['funny', 'inspiring', 'mixed'];\n  contentType = types[Math.floor(Math.random() * types.length)];\n}\n\n// Время\nconst now = new Date();\nnow.setHours(now.getHours() + 3); // прибавляем 3 часа\nconst hour = now.getHours();\nlet timeContext = '';\nif (hour < 6) timeContext = 'ночь';\nelse if (hour < 12) timeContext = 'утро';\nelse if (hour < 18) timeContext = 'день';\nelse timeContext = 'вечер';\n\nreturn [{\n  json: {\n    userId,\n    userName,\n    userMessage: isEmptyAfterTag ? 'Случайная фраза' : userMessage,\n    originalMessage,\n    chatId,\n    contentType,\n    command,\n    timeContext,\n    recentMessages,\n    chatType: telegramData.message.chat.type,\n    isRandomRequest: isEmptyAfterTag\n  }\n}];"
       },
-      "id": "fa35a2bc-84d8-49a2-b398-c55abd29a10f",
-      "name": "Это команда?",
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2,
-      "position": [
-        -1104,
-        224
-      ]
-    },
-    {
-      "parameters": {
-        "jsCode": "const telegramData = $('Webhook Telegram').first().json;\nconst messageText = telegramData.message.text;\nconst userId = telegramData.message.from.id;\nconst chatId = telegramData.message.chat.id;\nconst userName = telegramData.message.from.first_name || telegramData.message.from.username;\n\n// Парсим команду\nconst commandMatch = messageText.match(/^\\/(\\w+)(?:@\\w+)?(?:\\s+(.*))?/);\nconst command = commandMatch ? commandMatch[1].toLowerCase() : '';\nconst parameters = commandMatch ? (commandMatch[2] || '') : '';\n\n// Определяем тип команды\nlet commandType = 'unknown';\nlet responseType = 'mixed';\n\nswitch(command) {\n  case 'joke':\n    commandType = 'joke';\n    responseType = 'funny';\n    break;\n  case 'inspire':\n    commandType = 'inspire';\n    responseType = 'inspiring';\n    break;\n  case 'random':\n    commandType = 'random';\n    responseType = 'mixed';\n    break;\n  case 'stats':\n    commandType = 'stats';\n    responseType = 'info';\n    break;\n  case 'top':\n    commandType = 'top';\n    responseType = 'info';\n    break;\n  case 'help':\n    commandType = 'help';\n    responseType = 'info';\n    break;\n  case 'schedule':\n    commandType = 'schedule';\n    responseType = 'admin';\n    break;\n  default:\n    commandType = 'unknown';\n}\n\n// Время дня\nconst now = new Date();\nconst hour = now.getHours();\nlet timeContext = '';\nif (hour < 6) timeContext = 'ночь';\nelse if (hour < 12) timeContext = 'утро';\nelse if (hour < 18) timeContext = 'день';\nelse timeContext = 'вечер';\n\nreturn [{\n  json: {\n    userId,\n    userName,\n    chatId,\n    command,\n    commandType,\n    parameters,\n    responseType,\n    timeContext,\n    originalMessage: messageText,\n    chatType: telegramData.message.chat.type\n  }\n}];"
-      },
-      "id": "122cf278-a356-4e16-90b5-8269b7d8f785",
-      "name": "Парсинг команды",
+      "id": "f8a97443-6a04-4e0e-bc03-b97ca6f70d03",
+      "name": "Mention Analysis",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
@@ -116,16 +186,16 @@
     {
       "parameters": {
         "operation": "executeQuery",
-        "query": "INSERT INTO bot_commands (user_id, chat_id, command, parameters) \nVALUES ({{ $json.userId }}, {{ $json.chatId }}, '{{ $json.command }}', '{{ $json.parameters.replace(/'/g, \"''\") }}');\n\n-- Обновляем статистику команд\nUPDATE user_stats \nSET commands_count = commands_count + 1 \nWHERE user_id = {{ $json.userId }} AND chat_id = {{ $json.chatId }};",
+        "query": "SELECT \n  us.user_id,\n  us.messages_count,\n  us.commands_count,\n  0 as reactions_received,\n  us.last_activity,\n  (SELECT COUNT(*) FROM bot_responses br WHERE br.user_id = us.user_id AND br.chat_id = us.chat_id) as responses_count\nFROM user_stats us\nWHERE us.chat_id = {{ $json.message.chat.id }}\n  AND us.user_id = {{ $json.message.from.id }}\nLIMIT 1;",
         "options": {}
       },
-      "id": "1f2c07df-05f2-4e63-ac85-82211e5bfd98",
-      "name": "Логировать команду",
+      "id": "9350e52a-be5a-42b8-af23-b0caa3f8c45f",
+      "name": "Get user statistics",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2,
       "position": [
-        -656,
-        64
+        -1056,
+        224
       ],
       "credentials": {
         "postgres": {
@@ -137,16 +207,16 @@
     {
       "parameters": {
         "operation": "executeQuery",
-        "query": "SELECT \n  us.user_id,\n  us.messages_count,\n  us.commands_count,\n  0 as reactions_received,\n  us.last_activity,\n  (SELECT COUNT(*) FROM bot_responses br WHERE br.user_id = us.user_id AND br.chat_id = us.chat_id) as responses_count\nFROM user_stats us\nWHERE us.chat_id = {{ $('Парсинг команды').item.json.chatId }}\n  AND us.user_id = {{ $('Парсинг команды').item.json.userId }}\nLIMIT 1;",
+        "query": "SELECT \n  us.messages_count,\n  us.commands_count,\n  CONCAT(\n    COALESCE((SELECT first_name FROM user_messages WHERE user_id = us.user_id LIMIT 1), 'Пользователь'),\n    ' (@',\n    COALESCE((SELECT username FROM user_messages WHERE user_id = us.user_id LIMIT 1), 'no_username'),\n    ')'\n  ) as user_name\nFROM user_stats us\nWHERE us.chat_id = {{ $json.message.from.id }}\n  AND us.messages_count > 0\nORDER BY (us.messages_count + us.commands_count * 2) DESC\nLIMIT 10;",
         "options": {}
       },
-      "id": "70b030a8-0f10-4d43-99a3-7db7c0e8ee57",
-      "name": "Получить статистику пользователя",
+      "id": "67bcc139-a1b7-47bf-932e-77b86ddf00fd",
+      "name": "Get top users",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2,
       "position": [
-        -208,
-        -368
+        -1056,
+        384
       ],
       "credentials": {
         "postgres": {
@@ -154,77 +224,38 @@
           "name": "Supabase Postgres"
         }
       }
-    },
-    {
-      "parameters": {
-        "operation": "executeQuery",
-        "query": "SELECT \n  us.messages_count,\n  us.commands_count,\n  CONCAT(\n    COALESCE((SELECT first_name FROM user_messages WHERE user_id = us.user_id LIMIT 1), 'Пользователь'),\n    ' (@',\n    COALESCE((SELECT username FROM user_messages WHERE user_id = us.user_id LIMIT 1), 'no_username'),\n    ')'\n  ) as user_name\nFROM user_stats us\nWHERE us.chat_id = {{ $('Парсинг команды').item.json.chatId }}\n  AND us.messages_count > 0\nORDER BY (us.messages_count + us.commands_count * 2) DESC\nLIMIT 10;",
-        "options": {}
-      },
-      "id": "d0b2dc76-4643-41b0-a1ae-ca1c6a559015",
-      "name": "Получить топ пользователей",
-      "type": "n8n-nodes-base.postgres",
-      "typeVersion": 2,
-      "position": [
-        -208,
-        -176
-      ],
-      "credentials": {
-        "postgres": {
-          "id": "Fd7RaI9MHHQBq9hE",
-          "name": "Supabase Postgres"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "jsCode": "// ИСПРАВЛЕННЫЙ КОД для ноды \"Генерация информационного ответа\"\n\nconst commandData = $('Парсинг команды').first().json;\n\n// Безопасное получение данных - проверяем существование\nlet userStatsData = $input.first();\nlet topUsersData = [];\n\ntry {\n  // Пытаемся получить данные топа\n  const topNode = $('Получить топ пользователей');\n  if (topNode && topNode.all) {\n    topUsersData = topNode.all();\n  }\n} catch (error) {\n  console.log('Топ пользователей недоступен:', error.message);\n}\n\nlet responseText = '';\n\nswitch(commandData.commandType) {\n  case 'stats':\n    if (userStatsData !== undefined) {\n      const userStats = userStatsData.json;\n      responseText = `📊 Статистика ${commandData.userName}:\\n` +\n        `💬 Сообщений: ${userStats.messages_count || 0}\\n` +\n        `⚡ Команд: ${userStats.commands_count || 0}\\n` +\n        `📅 Последняя активность: ${userStats.last_activity ? new Date(userStats.last_activity).toLocaleString('ru-RU') : 'Неизвестно'}`;\n    } else {\n      responseText = `📊 Статистика ${commandData.userName}:\\n` +\n        `Пока нет данных. Продолжайте общаться! 💬`;\n    }\n    break;\n    \n  case 'top':\n    if (topUsersData.length > 0) {\n      responseText = '🏆 Топ активных пользователей:\\n\\n';\n      topUsersData.forEach((user, index) => {\n        const userData = user.json;\n        const total = (userData.messages_count || 0) + (userData.commands_count || 0) * 2;\n        responseText += `${index + 1}. ${userData.user_name || 'Пользователь'}\\n`;\n        responseText += `   💬 ${userData.messages_count || 0} сообщений, ⚡ ${userData.commands_count || 0} команд\\n`;\n        responseText += `   📊 Активность: ${total} очков\\n\\n`;\n      });\n    } else {\n      responseText = '🏆 Топ активных пользователей:\\n\\n' +\n        'Пока нет активных пользователей в этом чате! Будьте первыми! 🚀';\n    }\n    break;\n    \n  case 'help':\n    responseText = '🤖 Команды GiggleGPTBot:\\n\\n' +\n      '😄 /joke - смешная шутка\\n' +\n      '💪 /inspire - мотивация\\n' +\n      '🎲 /random - случайная фраза\\n' +\n      '📊 /stats - твоя статистика\\n' +\n      '🏆 /top - топ пользователей\\n' +\n      '❓ /help - эта справка\\n\\n' +\n      'Также можно писать @GiggleGPTBot + текст для персонального ответа!';\n    break;\n    \n  default:\n    responseText = 'Неизвестная команда 🤔 Используй /help для списка команд.';\n}\n\nreturn [{\n  json: {\n    userId: commandData.userId,\n    userName: commandData.userName,\n    chatId: commandData.chatId,\n    command: commandData.command,\n    commandType: commandData.commandType,\n    responseType: commandData.responseType,\n    timeContext: commandData.timeContext,\n    originalMessage: commandData.originalMessage,\n    chatType: commandData.chatType,\n    responseText: responseText,\n    isInfoCommand: true\n  }\n}];"
-      },
-      "id": "ace02b27-ee09-4fe2-b55d-ed5cc406e54a",
-      "name": "Генерация информационного ответа",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        32,
-        -16
-      ]
     },
     {
       "parameters": {
         "promptType": "define",
-        "text": "=Команда: /{{ $('Парсинг команды').item.json.command }}\nПользователь: {{ $('Парсинг команды').item.json.userName }}\nПараметры: {{ $('Парсинг команды').item.json.parameters }}\nТип ответа: {{ $('Парсинг команды').item.json.responseType }}\nВремя: {{ $('Парсинг команды').item.json.timeContext }}\n\nСгенерируй {{ $json.responseType === 'funny' ? 'смешную шутку' : $json.responseType === 'inspiring' ? 'мотивирующую фразу' : 'случайную интересную фразу' }} в твоем фирменном стиле с тонким юмором и изящными подколками.",
+        "text": "=Команда: /{{ $json.command }}\nПользователь: {{ $json.userName }}\nКонтекст чата: {{ $json.recentMessages }}\nВремя: {{ $json.timeContext }}\n\nСгенерируй {{ $json.command === 'joke' ? 'смешную шутку' : $json.command === 'inspire' ? 'мотивирующую фразу' : $json.command === 'roast' ? 'жёсткая грубая шутка в стиле народного сарказма' : 'случайную интересную фразу' }} в твоем фирменном стиле с тонким юмором и изящными подколками.",
         "options": {
-          "systemMessage": "Ты GiggleGPTBot - остроумный бот с тонким чувством юмора и мастерством изящных подколок.\n\nОтвечаешь на команды:\n- /joke - умная шутка с тонким юмором\n- /inspire - мотивация с легкой иронией \n- /random - неожиданная остроумная фраза\n\nСтиль: краткость, изящество, умные подколки без грубости. Используй эмодзи для выразительности."
+          "systemMessage": "Ты GiggleGPTBot — остроумный русский бот с широкой душой. Твоя задача — дарить короткий юмор и народную мудрость с лёгкой иронией.\n\nСтиль общения:\nРусские поговорки и пословицы в современной подаче.\nЛёгкая ирония и добрый подтекст.\nЭмодзи — уместно и дозированно (0–2 на ответ).\n\nИзбегай:\nГрубости, мата, банальных «советизмов».\nПутаных, длинных или бессмысленных образов.\nОбъяснения шуток и мета-ремарок про сам промпт.\n\nФормат ответа:\nСтрого 1–2 предложения (3 — только в особых случаях).\nОдна ясная мысль или шутка.\nНе более одной простой метафоры.\nОтвет должен читаться и пониматься с первого раза.\n\nКоманды:\n/joke — умная короткая шутка с лёгкой иронией.\n/inspire — мотивация с улыбкой, без пафоса.\n/random — неожиданная остроумная фраза в духе народной мудрости.\n/roast — жёсткая грубая шутка в стиле народного сарказма. Можно с колкостью, троллингом и резким юмором. Допустима грубость и лёгкий мат (но без оскорблений по полу, расе, национальности или другим запрещённым темам).\n\nПримеры:\n/joke → Сосед сказал, что бегает по утрам. Я сказал — тоже бегаю… глазами по расписанию автобусов 🚌.\n/inspire → Что характерно, даже у улитки есть цель — а у тебя, брат, ноги быстрее 🐌➡️🏃‍♂️.\n/random → Иногда чайник кипит дольше, чем любовь… однако и тот, и другая возвращаются к теплу ☕❤️.\nroast → «Будильник орёт так, будто у него ипотека. А у тебя? Только лень и храп — что характерно, тоже в кредит 😏».\n\nСамопроверка перед ответом:\nУложился ли я в 1–2 предложения?\nЕсть ли лёгкая ирония или шутка/мудрость?\nПонятно ли это обычному человеку с первого чтения?\nНет ли лишней воды, путаницы или странных образов?\n\nЕсли чеклист не пройден — сократи и переформулируй до простого, ясного и остроумного ответа."
         }
       },
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 2,
       "position": [
-        -320,
-        144
+        -528,
+        80
       ],
-      "id": "1c0b7f91-b147-44a6-b729-3cea5834a8e5",
-      "name": "AI ответ на команду"
+      "id": "da980913-914c-424a-bb69-0ab1473ccf1e",
+      "name": "AI response to command",
+      "retryOnFail": true,
+      "maxTries": 2
     },
     {
       "parameters": {
-        "model": "openai/gpt-oss-20b:free",
-        "options": {}
+        "jsCode": "const messageText = $('Webhook Telegram').first().json.message.text\nconst commandMatch = messageText.match(/^\\/(\\w+)(?:@\\w+)?(?:\\s+(.*))?/);\nconst commandData = commandMatch ? commandMatch[1].toLowerCase() : '';\n\nconst safe = (v, d = '') => (v === null || v === undefined ? d : v);\n\n// Безопасное получение данных из входа (статистика пользователя)\nlet userStatsItem;\ntry {\n  userStatsItem = $input.first();\n} catch (_) {\n  userStatsItem = undefined;\n}\n\n// Получение данных топа (массив items с .json)\nlet topUsersItems = [];\ntry {\n  const topNode = $('Get top users');\n  if (topNode && typeof topNode.all === 'function') {\n    const raw = topNode.all() || [];\n    // Преобразуем к массиву плоских json-объектов\n    topUsersItems = raw\n      .map(i => (i && i.json) ? i.json : null)\n      .filter(Boolean);\n  }\n} catch (error) {\n  console.log('Топ пользователей недоступен:', error.message);\n}\n\nconst userId = safe($('Webhook Telegram').first().json.message.from.id);\nconst userName = safe($('Webhook Telegram').first().json.message.chat.first_name, 'Пользователь');\nconst chatId = safe($('Webhook Telegram').first().json.message.chat.id);\nconst command = safe(commandData, '');\n\nlet responseText = '';\n\n// Вспомогательные функции\nconst formatDateRu = (iso) => {\n  try {\n    const d = new Date(iso);\n    if (isNaN(d.getTime())) return 'Неизвестно';\n    return d.toLocaleString('ru-RU', { dateStyle: 'short', timeStyle: 'short' });\n  } catch {\n    return 'Неизвестно';\n  }\n};\n\nconst calcActivity = (u) => {\n  const msgs = Number(u.messages_count || 0);\n  const cmds = Number(u.commands_count || 0);\n  // Команды немного ценнее: *2\n  return msgs + cmds * 2;\n};\n\n// Основная логика по типу команды\nswitch (command) {\n  case 'stats': {\n    if (userStatsItem && userStatsItem.json) {\n      const s = userStatsItem.json;\n      responseText =\n        `📊 Статистика ${userName}:\\n` +\n        `💬 Сообщений: ${Number(s.messages_count || 0)}\\n` +\n        `⚡ Команд: ${Number(s.commands_count || 0)}\\n` +\n        `📅 Последняя активность: ${s.last_activity ? formatDateRu(s.last_activity) : 'Неизвестно'}`;\n    } else {\n      responseText =\n        `📊 Статистика ${userName}:\\n` +\n        `Данных пока нет. Продолжайте общаться — и статистика появится! 💬`;\n    }\n    break;\n  }\n\n  case 'top': {\n    if (topUsersItems.length > 0) {\n      // Сортируем по активности по убыванию и ограничиваем, например, топ-10\n      const sorted = [...topUsersItems]\n        .sort((a, b) => calcActivity(b) - calcActivity(a))\n        .slice(0, 10);\n\n      const lines = sorted.map((u, idx) => {\n        const uname = u.user_name || 'Пользователь';\n        const msgs = Number(u.messages_count || 0);\n        const cmds = Number(u.commands_count || 0);\n        const total = calcActivity(u);\n        return `${idx + 1}. ${uname}\\n   💬 ${msgs} сообщений, ⚡ ${cmds} команд\\n   📊 Активность: ${total} очков`;\n      });\n\n      responseText = '🏆 Топ активных пользователей:\\n\\n' + lines.join('\\n\\n');\n    } else {\n      responseText =\n        '🏆 Топ активных пользователей:\\n\\n' +\n        'Пока нет активных пользователей в этом чате. Будьте первыми! 🚀';\n    }\n    break;\n  }\n\n  case 'help': {\n    responseText =\n      '🤖 Команды GiggleGPTBot:\\n\\n' +\n      '😄 /joke — смешная шутка\\n' +\n      '💪 /inspire — мотивация\\n' +\n      '🎲 /random — случайная фраза\\n' +\n      '🔥 /roast — жёсткая шутка с сарказмом (без оскорблений по запрещённым признакам)\\n' +\n      '📊 /stats — твоя статистика\\n' +\n      '🏆 /top — топ пользователей\\n' +\n      '❓ /help — эта справка\\n\\n' +\n      'Можешь также написать @GiggleGPTBot + текст — отвечу лично.';\n    break;\n  }\n\n  // Информационный узел не генерирует контент для юмора напрямую.\n  // Но если сюда случайно прилетела команда контента — подсказка пользователю:\n  case 'joke':\n  case 'inspire':\n  case 'random':\n  case 'roast': {\n    responseText =\n      'Эта команда генерирует контентный ответ и обрабатывается другой нодой. ' +\n      'Попробуйте снова — или используйте /help для списка доступных инфо-команд.';\n    break;\n  }\n\n  default: {\n    responseText = 'Неизвестная команда 🤔 Используй /help для списка команд.';\n  }\n}\n\n// Возврат результата\nreturn [{\n  json: {\n    userId,\n    userName,\n    chatId,\n    command,\n    responseText,\n    isInfoCommand: true\n  }\n}];\n"
       },
-      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
-      "typeVersion": 1,
+      "id": "b7cb332e-75d2-4464-bcb6-0e9a8351326a",
+      "name": "Generating an information response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
       "position": [
-        -640,
-        832
-      ],
-      "id": "3a420d16-9611-4761-b41a-97fda73abb56",
-      "name": "OpenRouter Commands",
-      "credentials": {
-        "openRouterApi": {
-          "id": "ONSHmBroionT6JFr",
-          "name": "OpenRouter account"
-        }
-      }
+        -864,
+        304
+      ]
     },
     {
       "parameters": {
@@ -261,30 +292,32 @@
         },
         "options": {}
       },
-      "id": "1dbf5bd9-87ee-44dd-bc22-d5649bf85e2a",
-      "name": "Тип ответа",
+      "id": "ce9dba56-18f9-4db4-99eb-e9aa5f9c95cd",
+      "name": "Response type",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
       "position": [
-        224,
-        112
+        -208,
+        272
       ]
     },
     {
       "parameters": {
         "chatId": "={{ $json.chatId }}",
         "text": "={{ $json.responseText }}",
-        "additionalFields": {}
+        "additionalFields": {
+          "parse_mode": "HTML"
+        }
       },
-      "id": "56b0ee68-7a89-4bb2-844c-25a47356e053",
-      "name": "Отправить инфо ответ",
+      "id": "58fd1703-9627-4299-94a9-986a801c294c",
+      "name": "Send info reply",
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1,
       "position": [
-        448,
-        32
+        -16,
+        192
       ],
-      "webhookId": "4f20c973-3a64-41ca-9f50-9b9e3c6b13a3",
+      "webhookId": "20b4671b-ebf4-4562-b40b-c3eba533ab60",
       "credentials": {
         "telegramApi": {
           "id": "GNUE3W3kc9bGnXyL",
@@ -294,23 +327,134 @@
     },
     {
       "parameters": {
-        "chatId": "={{ $('Парсинг команды').item.json.chatId }}",
+        "chatId": "={{ $('If1').item.json.chatId }}",
         "text": "={{ $json.output }}",
-        "additionalFields": {}
+        "additionalFields": {
+          "parse_mode": "HTML"
+        }
       },
-      "id": "417d0505-e3e1-4feb-ba48-de3ccc1be3d5",
-      "name": "Отправить AI ответ",
+      "id": "6ccb6bbc-4eca-48cc-8fed-a77e1148597b",
+      "name": "Send AI response",
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1,
       "position": [
-        448,
-        224
+        -16,
+        368
       ],
-      "webhookId": "1ccf329c-ecb1-4f44-b483-e00af8b7a081",
+      "webhookId": "0c3d1f52-87ed-48f4-a056-31beab8dcaf3",
       "credentials": {
         "telegramApi": {
           "id": "GNUE3W3kc9bGnXyL",
           "name": "GiggleGPTBot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Пользователь: {{ $json.userName }}\n{{ $json.isRandomRequest ? 'Обратился тегом без текста' : 'Сообщение: \"' + $json.userMessage + '\"' }}\n\nКонтекст чата:\n{{ $json.recentMessages }}\n\nВремя: {{ $json.timeContext }} | Стиль: {{ $json.contentType }}\n\n{{ $json.isRandomRequest ? 'Прокомментируй ситуацию в чате остроумно.' : 'Ответь на сообщение с тонким юмором.' }}\n\nБудь остроумным и тактичным! 🎭",
+        "options": {
+          "systemMessage": "Ты GiggleGPTBot — остроумный русский бот с тонким чувством юмора и широкой душой. Сочетаешь интеллигентность с народной мудростью, современность с русскими традициями и отвечаешь на реплики коротко и по делу.\n\nСтиль:\nРусские поговорки и пословицы в современной подаче.\nОтсылки к классикам и народной мудрости.\nМягкая ирония с добрым подтекстом.\nЭмодзи — уместно и дозированно (0–2 на ответ).\n\nИзбегай:\nГрубости, мата, заезженных советизмов.\nПутаных, слишком длинных или бессмысленных фраз.\nПоэтического «сюрреализма» и объяснения собственных шуток.\n\nФормат:\nМаксимум 1–2 предложения (3 — только в особых случаях).\nОдна ясная мысль или шутка.\nНе более одной простой метафоры.\nНе повторяй реплику пользователя и не уходи в отступления.\n\nПоведение по ситуации:\nВопрос — ответь по сути одним предложением, вторым добавь лёгкую иронию.\nРадость/успех — коротко поздравь, «что характерно» можно для шарма.\nЖалоба/тревога — такт, поддержка и мягкая надежда, без морализаторства.\nШутка от пользователя — ответь встречной, но доброжелательной.\nЕсли упомянуто имя — обратись по имени.\n\nСамопроверка перед ответом:\nУложился ли я в 1–2 предложения?\nЕсть ли лёгкая ирония или ясная мудрость?\nПонятно ли это с первого чтения и без «воды»?\nНе больше одной метафоры, не больше двух эмодзи, не больше двух фирменных словечек?\n\nЕсли чеклист не пройден — сократи и переформулируй до простого, ясного и остроумного ответа."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2,
+      "position": [
+        -528,
+        -128
+      ],
+      "id": "d820d3e2-8d0c-4106-b7fe-010448f380dd",
+      "name": "AI response to mention",
+      "retryOnFail": true,
+      "maxTries": 2,
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Mention Analysis').item.json.chatId }}",
+        "text": "={{ $json.output }}",
+        "additionalFields": {
+          "parse_mode": "HTML",
+          "reply_to_message_id": "={{ $('Webhook Telegram').first().json.message.message_id }}"
+        }
+      },
+      "id": "434dc067-86a1-469c-a824-5cecc3de73a1",
+      "name": "Reply to Mention",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [
+        -208,
+        -128
+      ],
+      "webhookId": "f77cfa99-a956-4c47-b4ff-41c3267b2505",
+      "credentials": {
+        "telegramApi": {
+          "id": "GNUE3W3kc9bGnXyL",
+          "name": "GiggleGPTBot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Тип поста: {{ $json.post_type }}\n\nСгенерируй {{ $json.post_type === 'morning_joke' ? 'утреннюю шутку' : $json.post_type === 'daily_motivation' ? 'мотивацию на день' : 'интересную фразу' }} в твоем стиле с тонким юмором.",
+        "options": {
+          "systemMessage": "ВАЖНО: Отвечай ТОЛЬКО простым текстом!\nНЕ используй звездочки, подчеркивания, специальные кавычки или символы форматирования.\n\nТы GiggleGPTBot — остроумный русский storyteller, создающий короткие посты с душой.\n\nТвои темы:\nmorning_joke: утренние шутки с русским юмором и добрым подтекстом\ndaily_motivation: мотивация от мудрого русского наставника с иронией\nrandom_wisdom: житейские наблюдения в духе \"а ведь правда!\"\n\nПоведение по теме:\nmorning_joke — одна шутка и короткий теплый финал\ndaily_motivation — один понятный тезис и мягкий призыв к действию\nrandom_wisdom — наблюдение и простой вывод\n\nСтиль:\nКраткость по Чехову: максимум 2–3 предложения (предпочтительно 2)\nНародная мудрость в современной подаче\nИнтеллигентный юмор с добрым подтекстом\nЭмодзи уместно и дозированно: 0–2 на ответ\nОдна простая метафора максимум\n\nИзбегай:\nГрубости, мата, банальных советизмов\nДлинных, путаных или сюрреалистичных образов\nХэштегов, ссылок, перечислений и объяснения собственных шуток\n\nПеред ответом делай самопроверку:\nУложился ли я в 2–3 предложения?\nЕсть ли лёгкая ирония или шутка/мудрость?\nПонятно ли это обычному человеку с первого чтения?\nНет ли лишней воды или путаницы?\n\nЕсли чеклист не пройден — сократи и переформулируй до простого, ясного и доброжелательного ответа."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2,
+      "position": [
+        -704,
+        688
+      ],
+      "id": "40e13dcd-c32d-4d0b-8dc2-e7e76ead686d",
+      "name": "AI post generation",
+      "retryOnFail": true,
+      "maxTries": 2
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Get scheduled posts').item.json.chat_id }}",
+        "text": "={{ $json.output }}",
+        "additionalFields": {
+          "parse_mode": "HTML"
+        }
+      },
+      "id": "2d84b443-ac4a-46dd-8862-e25dc33badf3",
+      "name": "Submit scheduled post",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [
+        -400,
+        688
+      ],
+      "webhookId": "d17bb041-f75d-427a-9529-d93f39a51723",
+      "credentials": {
+        "telegramApi": {
+          "id": "GNUE3W3kc9bGnXyL",
+          "name": "GiggleGPTBot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO bot_responses (user_id, chat_id, user_message, bot_response, response_type) \nVALUES ({{ $('Mention Analysis').item.json.userId }}, \n        {{ $('Mention Analysis').item.json.chatId }}, \n        '{{ $('Mention Analysis').item.json.originalMessage.replace(/'/g, \"''\") }}', \n        '{{ $json.output.replace(/'/g, \"''\") }}', \n        '{{ $('Mention Analysis').item.json.contentType }}');",
+        "options": {}
+      },
+      "id": "c6a5d868-8e72-42ce-8595-4fb90c75882f",
+      "name": "Save Bot Response",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        -208,
+        48
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "Fd7RaI9MHHQBq9hE",
+          "name": "Supabase Postgres"
         }
       }
     },
@@ -321,26 +465,17 @@
             "caseSensitive": true,
             "leftValue": "",
             "typeValidation": "strict",
-            "version": 1
+            "version": 2
           },
           "conditions": [
             {
-              "id": "condition1",
-              "leftValue": "={{ $json.message?.text }}",
-              "rightValue": "@GiggleGPTBot",
+              "id": "e1310a96-8c67-467e-b50d-fee95851424c",
+              "leftValue": "={{ $json.chat_id }}",
+              "rightValue": "",
               "operator": {
                 "type": "string",
-                "operation": "contains",
+                "operation": "exists",
                 "singleValue": true
-              }
-            },
-            {
-              "id": "251b4c51-cdf9-4124-b37b-003eb968a06f",
-              "leftValue": "={{ $json.message?.text }}",
-              "rightValue": "/",
-              "operator": {
-                "type": "string",
-                "operation": "notStartsWith"
               }
             }
           ],
@@ -348,149 +483,14 @@
         },
         "options": {}
       },
-      "id": "bf244b7f-9280-4126-bc37-9696507014db",
-      "name": "Упоминание бота?",
       "type": "n8n-nodes-base.if",
-      "typeVersion": 2,
+      "typeVersion": 2.2,
       "position": [
-        -1104,
-        384
-      ]
-    },
-    {
-      "parameters": {
-        "operation": "executeQuery",
-        "query": "SELECT message_text, username, first_name, created_at \nFROM user_messages \nWHERE chat_id = {{ $('Webhook Telegram').item.json.message.chat.id }} \nORDER BY created_at DESC \nLIMIT 20;",
-        "options": {}
-      },
-      "id": "edb50be1-307b-4ce8-bb57-00651f2d4a11",
-      "name": "История чата",
-      "type": "n8n-nodes-base.postgres",
-      "typeVersion": 2,
-      "position": [
-        -880,
-        384
+        -912,
+        704
       ],
-      "credentials": {
-        "postgres": {
-          "id": "Fd7RaI9MHHQBq9hE",
-          "name": "Supabase Postgres"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "jsCode": "const telegramData = $('Webhook Telegram').first().json;\nconst chatHistory = $('История чата').all();\n\n// Извлекаем информацию о пользователе\nconst userId = telegramData.message.from.id;\nconst userName = telegramData.message.from.first_name || telegramData.message.from.username || 'Анонимный';\nlet userMessage = telegramData.message.text;\nconst chatId = telegramData.message.chat.id;\n\n// Очищаем от тега\nconst originalMessage = userMessage;\nuserMessage = userMessage.replace(/@GiggleGPTBot/gi, '').trim();\nconst isEmptyAfterTag = !userMessage || userMessage.length === 0;\n\n// Контекст чата\nconst recentMessages = chatHistory.map(item => {\n  const msgText = item.json.message_text || '';\n  const author = item.json.first_name || item.json.username || 'Анонимный';\n  return `${author}: ${msgText}`;\n}).slice(0, 10).join('\\n');\n\n// Определяем тип\nlet contentType = 'mixed';\nconst lowerMessage = userMessage.toLowerCase();\nif (lowerMessage.includes('шутк') || lowerMessage.includes('смешн')) {\n  contentType = 'funny';\n} else if (lowerMessage.includes('вдохнов') || lowerMessage.includes('мотив')) {\n  contentType = 'inspiring';\n}\n\nif (isEmptyAfterTag) {\n  const types = ['funny', 'inspiring', 'mixed'];\n  contentType = types[Math.floor(Math.random() * types.length)];\n}\n\n// Время\nconst now = new Date();\nnow.setHours(now.getHours() + 3); // прибавляем 3 часа\nconst hour = now.getHours();\nlet timeContext = '';\nif (hour < 6) timeContext = 'ночь';\nelse if (hour < 12) timeContext = 'утро';\nelse if (hour < 18) timeContext = 'день';\nelse timeContext = 'вечер';\n\nreturn [{\n  json: {\n    userId,\n    userName,\n    userMessage: isEmptyAfterTag ? 'Случайная фраза' : userMessage,\n    originalMessage,\n    chatId,\n    contentType,\n    timeContext,\n    recentMessages,\n    chatType: telegramData.message.chat.type,\n    isRandomRequest: isEmptyAfterTag\n  }\n}];"
-      },
-      "id": "f3d8ffb2-c135-4b1e-8bba-e820fce43e9b",
-      "name": "Анализ упоминания",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        -656,
-        384
-      ]
-    },
-    {
-      "parameters": {
-        "promptType": "define",
-        "text": "=Пользователь: {{ $json.userName }}\n{{ $json.isRandomRequest ? 'Обратился тегом без текста' : 'Сообщение: \"' + $json.userMessage + '\"' }}\n\nКонтекст чата:\n{{ $json.recentMessages }}\n\nВремя: {{ $json.timeContext }} | Стиль: {{ $json.contentType }}\n\n{{ $json.isRandomRequest ? 'Прокомментируй ситуацию в чате остроумно.' : 'Ответь на сообщение с тонким юмором.' }}\n\nБудь остроумным и тактичным! 🎭",
-        "options": {
-          "systemMessage": "Ты GiggleGPTBot - остроумный бот с тонким чувством юмора и изящными подколками.\n\nСтиль: краткие ответы (1-2 предложения), умные наблюдения, легкая ирония, культурные отсылки.\n\nИзбегай: грубости, агрессивного сарказма, длинных текстов.\n\nИспользуй эмодзи для выразительности."
-        }
-      },
-      "type": "@n8n/n8n-nodes-langchain.agent",
-      "typeVersion": 2,
-      "position": [
-        -464,
-        464
-      ],
-      "id": "797a7e58-e484-4042-b925-08ccc03bd2d3",
-      "name": "AI ответ на упоминание"
-    },
-    {
-      "parameters": {
-        "chatId": "={{ $('Анализ упоминания').item.json.chatId }}",
-        "text": "={{ $json.output }}",
-        "additionalFields": {
-          "reply_to_message_id": "={{ $('Webhook Telegram').first().json.message.message_id }}"
-        }
-      },
-      "id": "3b5d0fea-5d38-4d5e-a585-d74fb6a4ab33",
-      "name": "Отправить ответ на упоминание",
-      "type": "n8n-nodes-base.telegram",
-      "typeVersion": 1,
-      "position": [
-        -80,
-        432
-      ],
-      "webhookId": "03496589-cd63-4249-a5b5-eff8fec21592",
-      "credentials": {
-        "telegramApi": {
-          "id": "GNUE3W3kc9bGnXyL",
-          "name": "GiggleGPTBot"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "operation": "executeQuery",
-        "query": "SELECT chat_id, post_type \nFROM scheduled_posts \nWHERE is_active = true \nAND EXTRACT(HOUR FROM scheduled_time) = EXTRACT(HOUR FROM CURRENT_TIME);",
-        "options": {}
-      },
-      "id": "fd5d8aab-fad8-4898-83d9-37bd19653df3",
-      "name": "Получить запланированные посты",
-      "type": "n8n-nodes-base.postgres",
-      "typeVersion": 2,
-      "position": [
-        -1328,
-        624
-      ],
-      "credentials": {
-        "postgres": {
-          "id": "Fd7RaI9MHHQBq9hE",
-          "name": "Supabase Postgres"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "promptType": "define",
-        "text": "=Тип поста: {{ $json.post_type }}\n\nСгенерируй {{ $json.post_type === 'morning_joke' ? 'утреннюю шутку' : $json.post_type === 'daily_motivation' ? 'мотивацию на день' : 'интересную фразу' }} в твоем стиле с тонким юмором.",
-        "options": {
-          "systemMessage": "ВАЖНО: Отвечай ТОЛЬКО простым текстом! \nНЕ используй звездочки, подчеркивания, специальные кавычки или символы форматирования!\n\nТы GiggleGPTBot. Генерируешь запланированные посты для каналов:\n- morning_joke: утренние шутки с легкой иронией\n- daily_motivation: мотивация с долей юмора\n- random_wisdom: неожиданные наблюдения о жизни\n\nСтиль: краткость, остроумие, позитив с ноткой иронии."
-        }
-      },
-      "type": "@n8n/n8n-nodes-langchain.agent",
-      "typeVersion": 2,
-      "position": [
-        -1104,
-        624
-      ],
-      "id": "c8fc55a5-c357-4421-8601-fa28a69e71f4",
-      "name": "AI генерация поста"
-    },
-    {
-      "parameters": {
-        "chatId": "={{ $('Получить запланированные посты').item.json.chat_id }}",
-        "text": "={{ $json.output }}",
-        "additionalFields": {}
-      },
-      "id": "05c531f3-9b72-4028-822c-08003212f410",
-      "name": "Отправить запланированный пост",
-      "type": "n8n-nodes-base.telegram",
-      "typeVersion": 1,
-      "position": [
-        -784,
-        624
-      ],
-      "webhookId": "4ac5eeba-a239-4d33-979b-c5a9adb33e4e",
-      "credentials": {
-        "telegramApi": {
-          "id": "GNUE3W3kc9bGnXyL",
-          "name": "GiggleGPTBot"
-        }
-      }
+      "id": "7c237617-3840-4791-a6b3-b72de786e97b",
+      "name": "If"
     },
     {
       "parameters": {
@@ -502,21 +502,23 @@
                   "caseSensitive": true,
                   "leftValue": "",
                   "typeValidation": "strict",
-                  "version": 1
+                  "version": 2
                 },
                 "conditions": [
                   {
-                    "leftValue": "={{ $('Парсинг команды').item.json.commandType }}",
-                    "rightValue": "stats",
+                    "leftValue": "={{ $json.message?.text }}",
+                    "rightValue": "/joke",
                     "operator": {
                       "type": "string",
-                      "operation": "equals"
+                      "operation": "startsWith"
                     },
-                    "id": "995c6bf3-f7c9-4589-ba6b-181d8f0339fc"
+                    "id": "1b2506b4-5b0b-48cb-bb27-5684c9bcbd88"
                   }
                 ],
-                "combinator": "or"
-              }
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "joke"
             },
             {
               "conditions": {
@@ -524,22 +526,23 @@
                   "caseSensitive": true,
                   "leftValue": "",
                   "typeValidation": "strict",
-                  "version": 1
+                  "version": 2
                 },
                 "conditions": [
                   {
-                    "id": "adf626b1-fdfc-4ef3-802a-5aabf79694e3",
-                    "leftValue": "={{ $('Парсинг команды').item.json.commandType }}",
-                    "rightValue": "top",
+                    "id": "6362199a-67f8-47c2-a845-3088f33c3338",
+                    "leftValue": "={{ $json.message?.text }}",
+                    "rightValue": "/inspire",
                     "operator": {
                       "type": "string",
-                      "operation": "equals",
-                      "name": "filter.operator.equals"
+                      "operation": "startsWith"
                     }
                   }
                 ],
-                "combinator": "or"
-              }
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "inspire"
             },
             {
               "conditions": {
@@ -547,71 +550,224 @@
                   "caseSensitive": true,
                   "leftValue": "",
                   "typeValidation": "strict",
-                  "version": 1
+                  "version": 2
                 },
                 "conditions": [
                   {
-                    "id": "5e0f6d12-ca1c-4ab2-bb2e-f7937265274b",
-                    "leftValue": "={{ $('Парсинг команды').item.json.commandType }}",
-                    "rightValue": "help",
+                    "id": "f883e421-2f6e-490b-ae2c-9952c5083d2c",
+                    "leftValue": "={{ $json.message?.text }}",
+                    "rightValue": "/random",
                     "operator": {
                       "type": "string",
-                      "operation": "equals",
-                      "name": "filter.operator.equals"
+                      "operation": "startsWith"
                     }
                   }
                 ],
-                "combinator": "or"
-              }
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "random"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "3d6557c4-2eab-4545-af30-3b4848c424fb",
+                    "leftValue": "={{ $json.message?.text }}",
+                    "rightValue": "/roast",
+                    "operator": {
+                      "type": "string",
+                      "operation": "startsWith"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "roast"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "69fbe825-df4d-44c5-85eb-5d69e0f17896",
+                    "leftValue": "={{ $json.message?.text }}",
+                    "rightValue": "@GiggleGPTBot",
+                    "operator": {
+                      "type": "string",
+                      "operation": "startsWith"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "GiggleGPTBot"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "ac0a71e3-8793-4c32-a5f9-bec6055c04d7",
+                    "leftValue": "={{ $json.message?.text }}",
+                    "rightValue": "/stats",
+                    "operator": {
+                      "type": "string",
+                      "operation": "startsWith"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "stats"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "062c9bd8-d63d-4c22-9097-8499b04ebc13",
+                    "leftValue": "={{ $json.message?.text }}",
+                    "rightValue": "/help",
+                    "operator": {
+                      "type": "string",
+                      "operation": "startsWith"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "help"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "ceb18c82-23d7-411d-8a48-c212ea7add91",
+                    "leftValue": "={{ $json.message?.text }}",
+                    "rightValue": "/top",
+                    "operator": {
+                      "type": "string",
+                      "operation": "startsWith"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "top"
             }
           ]
         },
-        "options": {
-          "fallbackOutput": "extra"
-        }
+        "options": {}
       },
-      "id": "849512c4-bfe7-4624-bcb0-8c76b69fb0a3",
-      "name": "Роутинг команд",
       "type": "n8n-nodes-base.switch",
-      "typeVersion": 3,
+      "typeVersion": 3.2,
       "position": [
-        -496,
-        -160
-      ]
-    },
-    {
-      "parameters": {
-        "rule": {
-          "interval": [
-            {
-              "field": "cronExpression",
-              "expression": "0 * * * *"
-            }
-          ]
-        }
-      },
-      "id": "defd23c5-c0c1-4686-900b-cc21fffdf4f2",
-      "name": "Расписание",
-      "type": "n8n-nodes-base.scheduleTrigger",
-      "typeVersion": 1,
-      "position": [
-        -1536,
-        624
-      ]
+        -1248,
+        128
+      ],
+      "id": "d7eb9893-54b8-4cbd-aa83-a62a3fc57385",
+      "name": "Switch"
     },
     {
       "parameters": {
         "operation": "executeQuery",
-        "query": "INSERT INTO scheduled_posts (chat_id, post_type, scheduled_time) VALUES\n(-1001111111, 'random_wisdom', '16:00:00'),\n(-1002222222, 'daily_news', '09:00:00');",
+        "query": "INSERT INTO bot_commands (user_id, chat_id, command) \nVALUES ({{ $json.userId }}, {{ $json.chatId }}, '{{ $json.userMessage.replace(/'/g, \"''\") }}');\n\n-- Обновляем статистику команд\nUPDATE user_stats \nSET commands_count = commands_count + 1 \nWHERE user_id = {{ $json.userId }} AND chat_id = {{ $json.chatId }};",
         "options": {}
       },
-      "id": "e1e9f133-b50c-49cb-b9fb-25cf90896926",
-      "name": "Добавление расписания",
+      "id": "1fd11db4-fe5b-4cf4-8ff2-16eff3776f46",
+      "name": "Log command",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2,
       "position": [
-        -1536,
-        448
+        -672,
+        224
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "Fd7RaI9MHHQBq9hE",
+          "name": "Supabase Postgres"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "39d5e005-69f7-4e27-ad73-e00b7a694a4e",
+              "leftValue": "={{ $json.originalMessage }}",
+              "rightValue": "@GiggleGPTBot",
+              "operator": {
+                "type": "string",
+                "operation": "startsWith"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -704,
+        64
+      ],
+      "id": "ba2ead85-de77-4f21-b84f-b9da7bcc4c08",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO bot_responses (user_id, chat_id, user_message, bot_response, response_type) \nVALUES (0, -- системный пользователь для расписания\n        {{ $('Get scheduled posts').item.json.chat_id }}, \n        'Scheduled post', \n        '{{ $json.output.replace(/'/g, \"''\") }}', \n        '{{ $('Get scheduled posts').item.json.post_type }}');",
+        "options": {}
+      },
+      "id": "38bf1ff8-6cae-450f-a1ce-5764a4f5121a",
+      "name": "Save Bot Response2",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        -400,
+        512
       ],
       "credentials": {
         "postgres": {
@@ -627,112 +783,12 @@
       "main": [
         [
           {
-            "node": "Логировать сообщение + статистика",
+            "node": "Log message + statistics",
             "type": "main",
             "index": 0
           },
           {
-            "node": "Это команда?",
-            "type": "main",
-            "index": 0
-          },
-          {
-            "node": "Упоминание бота?",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Это команда?": {
-      "main": [
-        [
-          {
-            "node": "Парсинг команды",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Парсинг команды": {
-      "main": [
-        [
-          {
-            "node": "Логировать команду",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Логировать команду": {
-      "main": [
-        [
-          {
-            "node": "Роутинг команд",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Получить статистику пользователя": {
-      "main": [
-        [
-          {
-            "node": "Генерация информационного ответа",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Получить топ пользователей": {
-      "main": [
-        [
-          {
-            "node": "Генерация информационного ответа",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Генерация информационного ответа": {
-      "main": [
-        [
-          {
-            "node": "Тип ответа",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "AI ответ на команду": {
-      "main": [
-        [
-          {
-            "node": "Тип ответа",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Тип ответа": {
-      "main": [
-        [
-          {
-            "node": "Отправить инфо ответ",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Отправить AI ответ",
+            "node": "Switch",
             "type": "main",
             "index": 0
           }
@@ -743,126 +799,259 @@
       "ai_languageModel": [
         [
           {
-            "node": "AI ответ на команду",
+            "node": "AI response to command",
             "type": "ai_languageModel",
             "index": 0
           },
           {
-            "node": "AI ответ на упоминание",
+            "node": "AI response to mention",
             "type": "ai_languageModel",
             "index": 0
           },
           {
-            "node": "AI генерация поста",
+            "node": "AI post generation",
             "type": "ai_languageModel",
             "index": 0
           }
         ]
       ]
     },
-    "Упоминание бота?": {
+    "Schedule": {
       "main": [
         [
           {
-            "node": "История чата",
+            "node": "Get scheduled posts",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "История чата": {
+    "Get scheduled posts": {
       "main": [
         [
           {
-            "node": "Анализ упоминания",
+            "node": "If",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Анализ упоминания": {
+    "Chat history": {
       "main": [
         [
           {
-            "node": "AI ответ на упоминание",
+            "node": "Mention Analysis",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "AI ответ на упоминание": {
+    "Mention Analysis": {
       "main": [
         [
           {
-            "node": "Отправить ответ на упоминание",
+            "node": "If1",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Получить запланированные посты": {
+    "Get user statistics": {
       "main": [
         [
           {
-            "node": "AI генерация поста",
+            "node": "Generating an information response",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "AI генерация поста": {
+    "Get top users": {
       "main": [
         [
           {
-            "node": "Отправить запланированный пост",
+            "node": "Generating an information response",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Роутинг команд": {
+    "AI response to command": {
       "main": [
         [
           {
-            "node": "Получить статистику пользователя",
+            "node": "Response type",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Save Bot Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generating an information response": {
+      "main": [
+        [
+          {
+            "node": "Log command",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Response type",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Response type": {
+      "main": [
+        [
+          {
+            "node": "Send info reply",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "Получить топ пользователей",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Генерация информационного ответа",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "AI ответ на команду",
+            "node": "Send AI response",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Расписание": {
+    "AI response to mention": {
       "main": [
         [
           {
-            "node": "Получить запланированные посты",
+            "node": "Reply to Mention",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Save Bot Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI post generation": {
+      "main": [
+        [
+          {
+            "node": "Submit scheduled post",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Save Bot Response2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "AI post generation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Chat history",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Chat history",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Chat history",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Chat history",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Chat history",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get user statistics",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Generating an information response",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get top users",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log command": {
+      "main": [
+        []
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "AI response to mention",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "AI response to command",
             "type": "main",
             "index": 0
           }
@@ -874,10 +1063,11 @@
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "c0e7fe6e-0aa2-4a45-8cd2-40abcc9f0904",
+  "versionId": "5090db88-9bb3-4388-854d-2eec656d72e1",
   "meta": {
+    "templateCredsSetupCompleted": true,
     "instanceId": "673dd365761c86615255caaaae908ad0f2b40ed6e6f64e1be5631254544e65ca"
   },
-  "id": "jeTfRyDD9h7bZi7X",
+  "id": "HQCy1wTN0cqsiOQG",
   "tags": []
 }
